@@ -57,9 +57,9 @@ left to right like `1d2h30m`, or a bare integer for seconds.
 
 ## Status
 
-Early skeleton. Parsing is line-oriented and unit-tested manually so far;
-see the issue tracker for what's missing (weeks/years, fractional output
-precision control, JSON output).
+Early skeleton with unit tests for the size and duration parsers. See the
+issue tracker for what's missing (weeks/years, fractional output precision
+control, JSON output).
 
 ## License
 
