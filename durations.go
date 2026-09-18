@@ -6,9 +6,12 @@ import (
 	"strings"
 )
 
-// durationUnits maps a unit suffix to its length in seconds. Days are
-// included because time.ParseDuration deliberately leaves them out, but
-// they show up constantly in log retention and job scheduling.
+// durationUnits maps a unit suffix to its length in seconds. Days, weeks,
+// and years are included because time.ParseDuration deliberately leaves
+// them out, but they show up constantly in log retention and job
+// scheduling. A year is treated as a fixed 365 days rather than a
+// calendar year, since there's no calendar context to resolve leap years
+// against here.
 var durationUnits = map[string]float64{
 	"ns": 1e-9,
 	"us": 1e-6,
@@ -17,6 +20,8 @@ var durationUnits = map[string]float64{
 	"m":  60,
 	"h":  3600,
 	"d":  86400,
+	"w":  7 * 86400,
+	"y":  365 * 86400,
 }
 
 func isDigitOrDot(b byte) bool {

@@ -52,14 +52,15 @@ Sizes accept decimal (`KB`, `MB`, `GB`, `TB`, `PB`, base 1000) and binary
 (`KiB`, `MiB`, `GiB`, `TiB`, `PiB`, base 1024) suffixes, plus a bare `B` or
 no suffix at all for a raw byte count.
 
-Durations accept `ns`, `us`, `ms`, `s`, `m`, `h`, and `d` (days), combined
-left to right like `1d2h30m`, or a bare integer for seconds.
+Durations accept `ns`, `us`, `ms`, `s`, `m`, `h`, `d` (days), `w` (weeks),
+and `y` (years), combined left to right like `1d2h30m`, or a bare integer
+for seconds. A year is a fixed 365 days, not a calendar year.
 
 ## Status
 
 Early skeleton with unit tests for the size and duration parsers. See the
-issue tracker for what's missing (weeks/years, fractional output precision
-control, JSON output).
+issue tracker for what's missing (fractional output precision control,
+JSON output).
 
 ## License
 
