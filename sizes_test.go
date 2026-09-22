@@ -58,9 +58,28 @@ func TestFormatByteSize(t *testing.T) {
 		{-512, "-512B"},
 	}
 	for _, c := range cases {
-		got := formatByteSize(c.in)
+		got := formatByteSize(c.in, 2)
 		if got != c.want {
-			t.Errorf("formatByteSize(%d) = %q, want %q", c.in, got, c.want)
+			t.Errorf("formatByteSize(%d, 2) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestFormatByteSizePrecision(t *testing.T) {
+	cases := []struct {
+		in        int64
+		precision int
+		want      string
+	}{
+		{1610612736, 0, "2GiB"},
+		{1610612736, 1, "1.5GiB"},
+		{1610612736, 4, "1.5000GiB"},
+		{1024, 0, "1KiB"},
+	}
+	for _, c := range cases {
+		got := formatByteSize(c.in, c.precision)
+		if got != c.want {
+			t.Errorf("formatByteSize(%d, %d) = %q, want %q", c.in, c.precision, got, c.want)
 		}
 	}
 }
@@ -68,7 +87,7 @@ func TestFormatByteSize(t *testing.T) {
 func TestByteSizeRoundTrip(t *testing.T) {
 	sizes := []int64{0, 1, 1023, 1024, 1610612736, 1 << 50}
 	for _, n := range sizes {
-		formatted := formatByteSize(n)
+		formatted := formatByteSize(n, 2)
 		got, err := parseByteSize(formatted)
 		if err != nil {
 			t.Errorf("parseByteSize(%q) returned error: %v", formatted, err)

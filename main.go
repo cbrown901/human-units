@@ -13,11 +13,11 @@ import (
 	"strings"
 )
 
-func convert(kind, line string) (string, error) {
+func convert(kind, line string, precision int) (string, error) {
 	switch kind {
 	case "size":
 		if n, err := strconv.ParseInt(line, 10, 64); err == nil {
-			return formatByteSize(n), nil
+			return formatByteSize(n, precision), nil
 		}
 		n, err := parseByteSize(line)
 		if err != nil {
@@ -38,7 +38,7 @@ func convert(kind, line string) (string, error) {
 	}
 }
 
-func processInput(r io.Reader, kind string, out, errOut io.Writer) bool {
+func processInput(r io.Reader, kind string, precision int, out, errOut io.Writer) bool {
 	ok := true
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -46,7 +46,7 @@ func processInput(r io.Reader, kind string, out, errOut io.Writer) bool {
 		if line == "" {
 			continue
 		}
-		result, err := convert(kind, line)
+		result, err := convert(kind, line, precision)
 		if err != nil {
 			fmt.Fprintf(errOut, "%s: %v\n", line, err)
 			ok = false
@@ -63,10 +63,15 @@ func processInput(r io.Reader, kind string, out, errOut io.Writer) bool {
 
 func main() {
 	kind := flag.String("kind", "size", `what to convert: "size" or "duration"`)
+	precision := flag.Int("precision", 2, "decimal places for human size output")
 	flag.Parse()
 
 	if *kind != "size" && *kind != "duration" {
 		fmt.Fprintf(os.Stderr, "invalid -kind %q (want \"size\" or \"duration\")\n", *kind)
+		os.Exit(2)
+	}
+	if *precision < 0 {
+		fmt.Fprintf(os.Stderr, "invalid -precision %d (must be >= 0)\n", *precision)
 		os.Exit(2)
 	}
 
@@ -74,7 +79,7 @@ func main() {
 	ok := true
 
 	if len(args) == 0 {
-		ok = processInput(os.Stdin, *kind, os.Stdout, os.Stderr)
+		ok = processInput(os.Stdin, *kind, *precision, os.Stdout, os.Stderr)
 	} else {
 		for _, name := range args {
 			f, err := os.Open(name)
@@ -83,7 +88,7 @@ func main() {
 				ok = false
 				continue
 			}
-			if !processInput(f, *kind, os.Stdout, os.Stderr) {
+			if !processInput(f, *kind, *precision, os.Stdout, os.Stderr) {
 				ok = false
 			}
 			f.Close()

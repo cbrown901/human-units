@@ -55,8 +55,8 @@ func parseByteSize(s string) (int64, error) {
 }
 
 // formatByteSize renders a byte count using the largest IEC unit that keeps
-// the number at or above 1.
-func formatByteSize(n int64) string {
+// the number at or above 1, with the given number of decimal places.
+func formatByteSize(n int64, precision int) string {
 	abs := float64(n)
 	if n < 0 {
 		abs = -abs
@@ -74,7 +74,7 @@ func formatByteSize(n int64) string {
 	for _, u := range units {
 		if abs >= u.size {
 			value := float64(n) / u.size
-			return fmt.Sprintf("%.2f%s", value, u.suffix)
+			return fmt.Sprintf("%.*f%s", precision, value, u.suffix)
 		}
 	}
 	return fmt.Sprintf("%dB", n)

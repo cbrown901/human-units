@@ -46,6 +46,16 @@ arguments are given:
 $ human-units -kind duration logs/*.txt < /dev/null
 ```
 
+Control decimal places in human size output with `-precision` (default 2):
+
+```
+$ echo "1610612736" | human-units -precision 0
+2GiB
+
+$ echo "1610612736" | human-units -precision 4
+1.5000GiB
+```
+
 ## Supported units
 
 Sizes accept decimal (`KB`, `MB`, `GB`, `TB`, `PB`, base 1000) and binary
@@ -59,8 +69,8 @@ for seconds. A year is a fixed 365 days, not a calendar year.
 ## Status
 
 Early skeleton with unit tests for the size and duration parsers. See the
-issue tracker for what's missing (fractional output precision control,
-JSON output).
+issue tracker for what's missing (JSON output, forcing conversion
+direction).
 
 ## License
 
