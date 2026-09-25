@@ -5,6 +5,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -12,6 +13,15 @@ import (
 	"strconv"
 	"strings"
 )
+
+// jsonResult is one line of newline-delimited JSON output in -json mode.
+// Error is only set when Output isn't, so a consumer can branch on which
+// field is present rather than checking for an empty string.
+type jsonResult struct {
+	Input  string `json:"input"`
+	Output string `json:"output,omitempty"`
+	Error  string `json:"error,omitempty"`
+}
 
 func convert(kind, line string, precision int) (string, error) {
 	switch kind {
@@ -38,9 +48,10 @@ func convert(kind, line string, precision int) (string, error) {
 	}
 }
 
-func processInput(r io.Reader, kind string, precision int, out, errOut io.Writer) bool {
+func processInput(r io.Reader, kind string, precision int, jsonOut bool, out, errOut io.Writer) bool {
 	ok := true
 	scanner := bufio.NewScanner(r)
+	enc := json.NewEncoder(out)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -48,11 +59,19 @@ func processInput(r io.Reader, kind string, precision int, out, errOut io.Writer
 		}
 		result, err := convert(kind, line, precision)
 		if err != nil {
-			fmt.Fprintf(errOut, "%s: %v\n", line, err)
 			ok = false
+			if jsonOut {
+				enc.Encode(jsonResult{Input: line, Error: err.Error()})
+			} else {
+				fmt.Fprintf(errOut, "%s: %v\n", line, err)
+			}
 			continue
 		}
-		fmt.Fprintln(out, result)
+		if jsonOut {
+			enc.Encode(jsonResult{Input: line, Output: result})
+		} else {
+			fmt.Fprintln(out, result)
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(errOut, err)
@@ -64,6 +83,7 @@ func processInput(r io.Reader, kind string, precision int, out, errOut io.Writer
 func main() {
 	kind := flag.String("kind", "size", `what to convert: "size" or "duration"`)
 	precision := flag.Int("precision", 2, "decimal places for human size output")
+	jsonOut := flag.Bool("json", false, "emit newline-delimited JSON objects (input/output/error) instead of plain text")
 	flag.Parse()
 
 	if *kind != "size" && *kind != "duration" {
@@ -79,7 +99,7 @@ func main() {
 	ok := true
 
 	if len(args) == 0 {
-		ok = processInput(os.Stdin, *kind, *precision, os.Stdout, os.Stderr)
+		ok = processInput(os.Stdin, *kind, *precision, *jsonOut, os.Stdout, os.Stderr)
 	} else {
 		for _, name := range args {
 			f, err := os.Open(name)
@@ -88,7 +108,7 @@ func main() {
 				ok = false
 				continue
 			}
-			if !processInput(f, *kind, *precision, os.Stdout, os.Stderr) {
+			if !processInput(f, *kind, *precision, *jsonOut, os.Stdout, os.Stderr) {
 				ok = false
 			}
 			f.Close()

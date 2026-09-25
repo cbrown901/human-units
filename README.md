@@ -56,6 +56,19 @@ $ echo "1610612736" | human-units -precision 4
 1.5000GiB
 ```
 
+Get newline-delimited JSON instead of plain text with `-json`, useful when a
+script needs to tell a converted value apart from a line that failed to
+parse:
+
+```
+$ printf '1.5GiB\nnotasize\n' | human-units -json
+{"input":"1.5GiB","output":"1610612736"}
+{"input":"notasize","error":"not a recognized size: \"notasize\""}
+```
+
+Every input line produces exactly one JSON object, on stdout, whether it
+succeeded or not; the process still exits non-zero if any line failed.
+
 ## Supported units
 
 Sizes accept decimal (`KB`, `MB`, `GB`, `TB`, `PB`, base 1000) and binary
@@ -69,8 +82,7 @@ for seconds. A year is a fixed 365 days, not a calendar year.
 ## Status
 
 Early skeleton with unit tests for the size and duration parsers. See the
-issue tracker for what's missing (JSON output, forcing conversion
-direction).
+issue tracker for what's missing (forcing conversion direction).
 
 ## License
 
